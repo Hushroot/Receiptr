@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Receiptr</title>
+        <link rel="stylesheet" href="style.css">
+        <script src="script.js" defer></script>
+    </head>
+    <body>
+        <h1>Receiptr</h1>
+        <p>Never lose a proof of purchase again.</p>
+
+        <h2>Add a purchase</h2>
+        <input id="product" placeholder="Product name">
+        <input id="store" placeholder="Store">
+        <input id="price" placeholder="Price" type="number">
+        <input type="date" id="purchaseDate">
+        <input type="date" id="returnDate">
+        <input type="file" id="receiptImage" accept="image/*">
+        <button onclick="addPurchase()"> Save purchase</button>
+        <input id="search" placeholder="Search receipts..." oninput="searchReceipts()"
+        <h2>My receipts</h2>
+
+        <div id="receipts"></div>
+    </body>
+</html>
