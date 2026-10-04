@@ -7,16 +7,18 @@ function addPurchase() {
     let returnDate = document.getElementById("returnDate").value;
     let warrantyDate = document.getElementById("warrantyDate").value;
     let reciptData ={
-        product: product, store: store, price: price, purchaseDate: purchaseDate, returnDate: returnDate, warrantyDate: warrantyDate
+        product: product, store: store, price: price, purchaseDate: purchaseDate, returnDate: returnDate, warrantyDate: warrantyDate, returned: false
     };
     receiptsData.push(reciptData);
     localStorage.setItem("receiptsData", JSON.stringify(receiptsData));
     showReceipts();
+    updateDashboard();
 }
 function deleteReceipt(index) {
     receiptsData.splice(index, 1);
     localStorage.setItem("receiptsData", JSON.stringify(receiptsData));
     showReceipts();
+    updateDashboard();
 }
 function searchReceipts() {
     let search = document.getElementById("search").value.toLowerCase();
@@ -77,6 +79,9 @@ function showReceipts() {
         else {
             warrantyStat = "No warranty date";
         }
+        if (receiptData.returned == true) {
+            returnStat = "returned";
+        }
 
         let receipt = document.createElement("div");
         receipt.className = "receipt-card";
@@ -99,6 +104,15 @@ function showReceipts() {
         editButton.onclick = function () {editReceipt(i);};
         receipt.appendChild(editButton);
 
+    if (receiptData.returned != true) {
+        let returnedButton = document.createElement("button");
+        returnedButton.textContent = "Mark as returned";
+        returnedButton.onclick = function () {
+            markAsReturned(i);
+        };
+        receipt.appendChild(returnedButton);
+    }
+
     }
 }
 function editReceipt(index) {
@@ -113,6 +127,95 @@ function editReceipt(index) {
 
     localStorage.setItem("receiptsData", JSON.stringify(receiptsData));
     showReceipts();
+    updateDashboard();
+}
+function markAsReturned(index) {
+    receiptsData[index].returned = true;
 
+    localStorage.setItem("receiptsData", JSON.stringify(receiptsData));
+    showReceipts();
+    updateDashboard();
+    showAllReceipts();
+}
+function updateDashboard() {
+    let returnsSoon = 0;
+    let returnableMoney = 0;
+    let urgentItem = "None";
+    let smalledtDays = Infinity;
+    let warrantiesSoon = 0;
+    let today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (let receiptData of receiptsData) {
+        let returnDay = new Date(receiptData.returnDate + "T00:00:00");
+        let timeDiff = returnDay - today
+        let daysLeft = Math.ceil(
+            timeDiff / (1000 * 60 * 60 * 24)
+        );
+        if (receiptData.returned != true && daysLeft >= 0 && daysLeft <= 7) {
+            returnsSoon++;
+        }
+        if (receiptData.returned != true && daysLeft >= 0) {
+            returnableMoney = returnableMoney + Number(receiptData.price);
+        }
+        if (receiptData.returned != true && daysLeft >= 0 && daysLeft < smalledtDays) {
+            smalledtDays = daysLeft;
+            if (daysLeft == 0) {
+                urgentItem = receiptData.product + " - Return Today";
+            }
+            else {
+                urgentItem = receiptData.product + " - " + daysLeft + " days left";
+            }
+        }
+        if (receiptData.warrantyDate) {
+            let warrantyDay = new Date(receiptData.warrantyDate + "T00:00:00");
+            let warrantyDiff = warrantyDay - today;
+            let warrantyDaysLeft = Math.ceil (
+                warrantyDiff / (1000 * 60 * 60 * 24)
+            );
+            if (warrantyDaysLeft >= 0 && warrantyDaysLeft <= 30) {
+                warrantiesSoon++;
+            }
+        }
+    }
+    document.getElementById("returnsSoon").textContent = returnsSoon;
+    document.getElementById("returnableMoney").textContent = returnableMoney;
+    document.getElementById("urgentItem").textContent = urgentItem;
+    document.getElementById("warrantiesSoon").textContent = warrantiesSoon;
+
+    let urgentBox = document.getElementById("urgentBox");
+    if (smalledtDays <= 3) {
+        urgentBox.style.borderColor = "#ef4444"
+    }
+    else {
+        urgentBox.style.borderColor = "#475569"
+    }
+}
+function showUrgentReturns() {
+    let receipts = document.getElementsByClassName("receipt-card");
+    let today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < receiptsData.length; i++) {
+        let returnDay = new Date(receiptsData[i].returnDate + "T00:00:00");
+        let timeDiff = returnDay - today;
+        let daysLeft = Math.ceil(
+            timeDiff / (1000 * 60 * 60 * 24)
+        );
+        if (receiptsData[i].returned != true && daysLeft >= 0 && daysLeft <= 7) {
+            receipts[i].style.display = "block";
+        }
+        else {
+            receipts[i].style.display = "none";
+        }
+    }
+}
+function showAllReceipts() {
+    let receipts = document.getElementsByClassName("receipt-card");
+    
+    for (let receipt of receipts) {
+        receipt.style.display = "block"
+    }
 }
 showReceipts();
+updateDashboard();

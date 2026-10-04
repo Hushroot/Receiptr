@@ -19,6 +19,15 @@
         <input type="file" id="receiptImage" accept="image/*">
         <button onclick="addPurchase()"> Save purchase</button>
     </section>
+    <section class="dashboard">
+        <h2>Return Dashboard</h2>
+        <p>Returns expiring soon: <span id="returnsSoon">0</span></p>
+        <p>Money still returnable: $<span id="returnableMoney">0</span></p>
+        <p>Warranties expiring soon: <span id="warrantiesSoon">0</span></p>
+        <p id="urgentBox">Most urgent item: <span id="urgentItem">None</span></p>
+        <button onclick="showUrgentReturns()">Show urgent returns</button>
+        <button onclick="showAllReceipts()">Show all receipts</button>
+    </section>
         <h2>My receipts</h2>
 
         <input id="search" placeholder="Search receipts..." oninput="searchReceipts()">
