@@ -5,38 +5,13 @@ function addPurchase() {
     let price = document.getElementById("price").value;
     let purchaseDate = document.getElementById("purchaseDate").value;
     let returnDate = document.getElementById("returnDate").value;
-    let ImageInput = document.getElementById("receiptImage");
-    let ImageFile = ImageInput.files[0];
+    let warrantyDate = document.getElementById("warrantyDate").value;
     let reciptData ={
-        product: product, store: store, price: price, purchaseDate: purchaseDate, returnDate: returnDate
+        product: product, store: store, price: price, purchaseDate: purchaseDate, returnDate: returnDate, warrantyDate: warrantyDate
     };
     receiptsData.push(reciptData);
     localStorage.setItem("receiptsData", JSON.stringify(receiptsData));
     showReceipts();
-
-
-
-    let today = new Date();
-    today.setHours(0, 0, 0, 0);
-    let returnDay = new Date(returnDate + "T00:00:00");
-    let timeDiff = returnDay - today;
-    let daysleft = Math.ceil(timeDiff / (1000 * 60 * 60 * 24))
-
-
-    if (ImageFile) {
-        let reader = new FileReader();
-        reader.onload = function () {
-            let image = document.createElement("img");
-            image.src = reader.result;
-            image.className = "receipt-image";
-            receipt.appendChild(image);
-            localStorage.setItem(
-                "receipts",
-                document.getElementById("receipts").innerHTML
-            );
-        };
-        reader.readAsDataURL(ImageFile);
-    }
 }
 function deleteReceipt(index) {
     receiptsData.splice(index, 1);
@@ -59,6 +34,50 @@ function showReceipts() {
 
     for (let i = 0; i < receiptsData.length; i++) {
         let receiptData = receiptsData[i];
+
+            let today = new Date();
+        today.setHours(0, 0, 0, 0);
+        let returnDay = new Date(receiptData.returnDate + "T00:00:00")
+        let timeDiff = returnDay - today;
+        let daysLeft = Math.ceil(
+            timeDiff / (1000 * 60 * 60 * 24)
+        );
+        let warrantyDay = new Date(receiptData.warrantyDate + "T00:00:00")
+        let WtimeDiff = warrantyDay -today;
+        let WdaysLeft = Math.ceil(
+            WtimeDiff / (1000 * 60 * 60 * 24)
+        );
+        let returnStat;
+        if (daysLeft > 0) {
+            returnStat = daysLeft + " days left to be returned";
+        }
+        else if (daysLeft == 0){
+            returnStat = "Return today";
+        }
+        else {
+            returnStat = "Return period expired";
+        }
+        let warrantyStat;
+        if (receiptData.warrantyDate) {
+            let warrantyDay = new Date(receiptData.warrantyDate +"T00:00:00");
+            let Wtimediff = warrantyDay - today;
+            let Wdaysleft = Math.ceil(
+                WtimeDiff / (1000 * 60 * 60 * 24)
+            );
+            if (WdaysLeft > 0) {
+                warrantyStat = WdaysLeft + " days left in the warranty";
+            }
+            else if (WdaysLeft == 0) {
+                warrantyStat = "Warranty expires today";
+            }
+            else {
+                warrantyStat = "Warranty expired";
+            }
+        }
+        else {
+            warrantyStat = "No warranty date";
+        }
+
         let receipt = document.createElement("div");
         receipt.className = "receipt-card";
         receipt.innerHTML =
@@ -66,7 +85,9 @@ function showReceipts() {
             "Store: " + receiptData.store + "<br>" +
             "Price: $" + receiptData.price + "<br>" +
             "Bought: " + receiptData.purchaseDate + "<br>" +
-            "Return by: " + receiptData.returnDate;
+            "Return by: " + receiptData.returnDate + "<br>" +
+            warrantyStat + "<br>" +
+            returnStat;
         let deleteButton = document.createElement("button");
         deleteButton.textContent = "Delete";
         deleteButton.onclick = function () {deleteReceipt(i);};
@@ -77,6 +98,7 @@ function showReceipts() {
         editButton.textContent = "Edit"
         editButton.onclick = function () {editReceipt(i);};
         receipt.appendChild(editButton);
+
     }
 }
 function editReceipt(index) {
