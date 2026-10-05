@@ -28,6 +28,15 @@
         <button onclick="showUrgentReturns()">Show urgent returns</button>
         <button onclick="showAllReceipts()">Show all receipts</button>
     </section>
+    <section class="insights">
+        <h2>Purchase Insights</h2>
+        <p>Total spent: $<span id="totalSpent">0</span></p>
+        <p>Average purchase: $<span id="averagePurchase">0</span></p>
+        <p>Total purchases: <span id="totalPurchases">0</span></p>
+        <p>Most used store: <span id="topStore">None</span></p>
+        <p>Biggest purchase: <span id="biggestPurchase">None</span></p>
+        <p>Items returned: <span id="returnedCount">0</span></p>
+    </section>
         <h2>My receipts</h2>
 
         <input id="search" placeholder="Search receipts..." oninput="searchReceipts()">

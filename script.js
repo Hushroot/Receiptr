@@ -13,12 +13,14 @@ function addPurchase() {
     localStorage.setItem("receiptsData", JSON.stringify(receiptsData));
     showReceipts();
     updateDashboard();
+    updateInsights();
 }
 function deleteReceipt(index) {
     receiptsData.splice(index, 1);
     localStorage.setItem("receiptsData", JSON.stringify(receiptsData));
     showReceipts();
     updateDashboard();
+    updateInsights();
 }
 function searchReceipts() {
     let search = document.getElementById("search").value.toLowerCase();
@@ -128,6 +130,7 @@ function editReceipt(index) {
     localStorage.setItem("receiptsData", JSON.stringify(receiptsData));
     showReceipts();
     updateDashboard();
+    updateInsights();
 }
 function markAsReturned(index) {
     receiptsData[index].returned = true;
@@ -136,6 +139,7 @@ function markAsReturned(index) {
     showReceipts();
     updateDashboard();
     showAllReceipts();
+    updateInsights();
 }
 function updateDashboard() {
     let returnsSoon = 0;
@@ -191,6 +195,29 @@ function updateDashboard() {
         urgentBox.style.borderColor = "#475569"
     }
 }
+function updateInsights() {
+    let totalSpent = 0;
+    let totalPurchases = receiptsData.length;
+    let biggestPurchase = "None";
+    let biggestPrice = 0;
+    for (let receiptData of receiptsData) {
+        totalSpent = totalSpent + Number(receiptData.price);
+
+        if (Number(receiptData.price) > biggestPrice) {
+            biggestPrice = Number(receiptData.price);
+            biggestPurchase = receiptData.product + " - $" + receiptData.price;
+        }
+    }
+    let averagePurchase = 0;
+
+    if (totalPurchases > 0) {
+        averagePurchase = totalSpent / totalPurchases;
+    }
+    document.getElementById("totalSpent").textContent = totalSpent;
+    document.getElementById("totalPurchases").textContent = totalPurchases;
+    document.getElementById("averagePurchase").textContent = averagePurchase.toFixed(2);
+    document.getElementById("biggestPurchase").textContent = biggestPurchase;
+}
 function showUrgentReturns() {
     let receipts = document.getElementsByClassName("receipt-card");
     let today = new Date();
@@ -219,3 +246,6 @@ function showAllReceipts() {
 }
 showReceipts();
 updateDashboard();
+updateInsights();
+
+
