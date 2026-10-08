@@ -19,7 +19,13 @@ async function scanReceiptPaddle() {
     if (!ocr) {
         ocr = await PaddleOCR.create({
             textDetectionModelName: "PP-OCRv5_mobile_det",
+            textDetectionModelAsset: {
+                url: import.meta.env.BASE_URL + "models/det-fixed.tar"
+            },
             textRecognitionModelName: "PP-OCRv5_mobile_rec",
+            textRecognitionModelAsset: {
+                url: import.meta.env.BASE_URL + "models/rec-fixed.tar"
+            },
             ortOptions: {
                 backend: "auto"
             } 
