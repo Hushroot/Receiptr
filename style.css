@@ -91,3 +91,14 @@ button:hover {
 .dashboard p:hover {
     border-color: #60a5fa;
 }
+.insights p {
+    background-color: #0f172a;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    border: 2px dashed #475569;
+}
+
+.insights p:hover {
+    border-color: #60a5fa;
+}

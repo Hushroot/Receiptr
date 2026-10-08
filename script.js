@@ -64,7 +64,7 @@ function showReceipts() {
         let warrantyStat;
         if (receiptData.warrantyDate) {
             let warrantyDay = new Date(receiptData.warrantyDate +"T00:00:00");
-            let Wtimediff = warrantyDay - today;
+            let WtimeDiff = warrantyDay - today;
             let Wdaysleft = Math.ceil(
                 WtimeDiff / (1000 * 60 * 60 * 24)
             );
@@ -200,6 +200,8 @@ function updateInsights() {
     let totalPurchases = receiptsData.length;
     let biggestPurchase = "None";
     let biggestPrice = 0;
+    let storeCounts = {};
+    let returnedCount = 0;
     for (let receiptData of receiptsData) {
         totalSpent = totalSpent + Number(receiptData.price);
 
@@ -207,16 +209,37 @@ function updateInsights() {
             biggestPrice = Number(receiptData.price);
             biggestPurchase = receiptData.product + " - $" + receiptData.price;
         }
+
+        if (storeCounts[receiptData.store]) {
+            storeCounts[receiptData.store]++;
+        }
+        else {
+            storeCounts[receiptData.store] = 1;
+        }
+        if (receiptData.returned == true) {
+            returnedCount++
+        }
     }
     let averagePurchase = 0;
 
     if (totalPurchases > 0) {
         averagePurchase = totalSpent / totalPurchases;
     }
+
+    let topStore = "None";
+    let topStoreCount = 0;
+    for (let store in storeCounts) {
+        if (storeCounts[store] > topStoreCount) {
+            topStoreCount = storeCounts[store];
+            topStore = store;
+        }
+    }
     document.getElementById("totalSpent").textContent = totalSpent;
     document.getElementById("totalPurchases").textContent = totalPurchases;
     document.getElementById("averagePurchase").textContent = averagePurchase.toFixed(2);
     document.getElementById("biggestPurchase").textContent = biggestPurchase;
+    document.getElementById("topStore").textContent = topStore;
+    document.getElementById("returnedCount").textContent = returnedCount;
 }
 function showUrgentReturns() {
     let receipts = document.getElementsByClassName("receipt-card");
@@ -244,8 +267,112 @@ function showAllReceipts() {
         receipt.style.display = "block"
     }
 }
+function preprocessImage(imageFile) {
+    return new Promise(function(resolve) {
+        let image = new Image();
+
+        image.onload = function() {
+            let canvas = document.createElement("canvas");
+            let ctx = canvas.getContext("2d");
+            canvas.width = image.width * 2;
+            canvas.height = image.height * 2;
+            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+            let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let pixels = imageData.data;
+
+            for (let i = 0; i < pixels.length; i += 4) {
+                let gray =
+                    pixels[i] * 0.299 + pixels[i + 1] * 0.587 + pixels[i + 2] * 0.114;
+                
+                pixels[i] = gray;
+                pixels[i + 1] = gray;
+                pixels[i + 2] = gray;
+            }
+            ctx.putImageData(imageData, 0, 0);
+            resolve(canvas);
+        };
+        image.src = URL.createObjectURL(imageFile);
+    });
+}
+async function scanReceipt() {
+    let imageInput = document.getElementById("receiptImage");
+    let status = document.getElementById("ocrStatus");
+    let ocrText = document.getElementById("ocrText");
+
+    if (imageInput.files.length == 0) {
+        status.textContent = "Please choose a receipt image first";
+        return;
+    }
+    let image = imageInput.files[0];
+    let processedImage = await preprocessImage(image);
+    document.getElementById("store").value = "";
+    document.getElementById("price").value = "";
+    document.getElementById("purchaseDate").value = "";
+    status.textContent = "Scanning receipt...";
+    ocrText.textContent = "";
+    let worker = await Tesseract.createWorker("eng",
+        Tesseract.OEM.LSTM_ONLY,
+        {
+            logger: function (info) {
+                console.log(info);
+
+                if(info.status == "recognizing text") {
+                    let percent = Math.round(info.progress * 100);
+                    status.textContent = "Scanning receipt... " + percent + "%";
+                }
+            }
+        }
+    );
+    await worker.setParameters({
+        tessedit_pageseg_mode: Tesseract.PSM.SPARSE_TEXT,
+        preserve_interword_spaces: "1"
+    });
+    let result = await worker.recognize(image);
+    await worker.terminate();
+    let text = result.data.text;
+    let totalMatch = text.match(/total\s*[:\-]?\s*[a-z]*\s*(\d+[.,]\d{2})/i);
+
+    if (totalMatch) {
+        let price = totalMatch[1];
+        price = price.replace(",", ".");
+        document.getElementById("price").value = price;
+    }
+
+    let dateMatch = text.match(/(\d{1,2})[.,\/](\d{1,2})[.,\/](\d{4})/);
+
+    if (dateMatch) {
+        let first = Number(dateMatch[1]);
+        let second = Number(dateMatch[2]);
+        let year = dateMatch[3];
+        
+        let day;
+        let month;
+
+        if (second > 12) {
+            month = first;
+            day = second;
+        }
+        else if (first > 12) {
+            day = first;
+            month = second;
+        }
+        else {
+            month = first;
+            day = second;
+        }
+        month = String(month).padStart(2, "0");
+        day = String(day).padStart(2, "0");
+        let formattedDate = year + "-" + month + "-" + day;
+        document.getElementById("purchaseDate").value = formattedDate;
+    }
+    ocrText.textContent = text;
+    status.textContent = "Receipt scanned - review the detected information before saving";
+}
 showReceipts();
 updateDashboard();
 updateInsights();
+
+
 
 

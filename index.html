@@ -3,6 +3,8 @@
     <head>
         <title>Receiptr</title>
         <link rel="stylesheet" href="style.css">
+        <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+        <script type="module" src="/paddle.js"></script>
         <script src="script.js" defer></script>
     </head>
     <body>
@@ -17,6 +19,9 @@
         <input type="date" id="returnDate">
         <input type="date" id="warrantyDate">
         <input type="file" id="receiptImage" accept="image/*">
+        <button onclick="scanReceiptPaddle()">Scan receipt</button>
+        <p id="ocrStatus"></p>
+        <pre id="ocrText" style="display: none;"></pre>
         <button onclick="addPurchase()"> Save purchase</button>
     </section>
     <section class="dashboard">
@@ -44,3 +49,4 @@
         <div id="receipts"></div>
     </body>
 </html>
+
