@@ -5,7 +5,7 @@
         <link rel="stylesheet" href="style.css">
         <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
         <script type="module" src="/paddle.js"></script>
-        <script src="%BASE_URL%script.js" defer></script>
+        <script src="/script.js" defer></script>
     </head>
     <body>
         <h1>Receiptr</h1>
@@ -21,6 +21,11 @@
         <input type="file" id="receiptImage" accept="image/*">
         <button onclick="scanReceiptPaddle()">Scan receipt</button>
         <p id="ocrStatus"></p>
+        <div id="detectedItemsSection" hidden>
+            <h3>Detected Items</h3>
+            <p>Review product names and enter any missing prices.</p>
+            <div id="detectedItems"></div>
+        </div>
         <pre id="ocrText" style="display: none;"></pre>
         <button onclick="addPurchase()"> Save purchase</button>
     </section>
