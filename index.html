@@ -1,57 +1,68 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-    <head>
-        <title>Receiptr</title>
-        <link rel="stylesheet" href="style.css">
-        <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-        <script type="module" src="/paddle.js"></script>
-        <script src="/script.js" defer></script>
-    </head>
-    <body>
-        <h1>Receiptr</h1>
-        <p>Never lose a proof of purchase again.</p>
+  <head>
+    <title>Receiptr</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script type="module" src="/paddle.js"></script>
+    <script src="/script.js" defer></script>
+  </head>
+  <body>
+    <h1>Receiptr</h1>
+    <p>Never lose a proof of purchase again.</p>
     <section class="add-box">
-        <h2>Add a purchase</h2>
-        <input id="product" placeholder="Product name">
-        <input id="store" placeholder="Store">
-        <input id="price" placeholder="Price" type="number">
-        <input type="date" id="purchaseDate">
-        <input type="date" id="returnDate">
-        <input type="date" id="warrantyDate">
-        <input type="file" id="receiptImage" accept="image/*">
-        <button onclick="scanReceiptPaddle()">Scan receipt</button>
-        <p id="ocrStatus"></p>
-        <div id="detectedItemsSection" hidden>
-            <h3>Detected Items</h3>
-            <p>Review product names and enter any missing prices.</p>
-            <div id="detectedItems"></div>
-        </div>
-        <pre id="ocrText" style="display: none;"></pre>
-        <button onclick="addPurchase()"> Save purchase</button>
+      <h2>Add a purchase</h2>
+      <input id="product" placeholder="Product name" />
+      <input id="store" placeholder="Store" />
+      <input id="price" placeholder="Price" type="number" />
+      <label for="currency">Currency</label>
+      <select id="currency">
+        <option value="USD">USD - US Dollar</option>
+        <option value="CHF">CHF - Swiss Franc</option>
+        <option value="EGP">EGP - Egyptian Pound</option>
+        <option value="EUR">EUR - Euro</option>
+        <option value="GBP">GBP - British Pound</option>
+      </select>
+      <input type="date" id="purchaseDate" />
+      <input type="date" id="returnDate" />
+      <input type="date" id="warrantyDate" />
+      <input type="file" id="receiptImage" accept="image/*" />
+      <button onclick="scanReceiptPaddle()">Scan receipt</button>
+      <p id="ocrStatus"></p>
+      <div id="detectedItemsSection" hidden>
+        <h3>Detected Items</h3>
+        <p>Review product names and enter any missing prices.</p>
+        <div id="detectedItems"></div>
+      </div>
+      <pre id="ocrText" style="display: none"></pre>
+      <button onclick="addPurchase()">Save purchase</button>
     </section>
     <section class="dashboard">
-        <h2>Return Dashboard</h2>
-        <p>Returns expiring soon: <span id="returnsSoon">0</span></p>
-        <p>Money still returnable: $<span id="returnableMoney">0</span></p>
-        <p>Warranties expiring soon: <span id="warrantiesSoon">0</span></p>
-        <p id="urgentBox">Most urgent item: <span id="urgentItem">None</span></p>
-        <button onclick="showUrgentReturns()">Show urgent returns</button>
-        <button onclick="showAllReceipts()">Show all receipts</button>
+      <h2>Return Dashboard</h2>
+      <p>Returns expiring soon: <span id="returnsSoon">0</span></p>
+      <p>Money still returnable: $<span id="returnableMoney">0</span></p>
+      <p>Warranties expiring soon: <span id="warrantiesSoon">0</span></p>
+      <p id="urgentBox">Most urgent item: <span id="urgentItem">None</span></p>
+      <button onclick="showUrgentReturns()">Show urgent returns</button>
+      <button onclick="showAllReceipts()">Show all receipts</button>
     </section>
     <section class="insights">
-        <h2>Purchase Insights</h2>
-        <p>Total spent: $<span id="totalSpent">0</span></p>
-        <p>Average purchase: $<span id="averagePurchase">0</span></p>
-        <p>Total purchases: <span id="totalPurchases">0</span></p>
-        <p>Most used store: <span id="topStore">None</span></p>
-        <p>Biggest purchase: <span id="biggestPurchase">None</span></p>
-        <p>Items returned: <span id="returnedCount">0</span></p>
+      <h2>Purchase Insights</h2>
+      <p>Total spent: <span id="totalSpent">0</span></p>
+      <p>Average purchase: <span id="averagePurchase">0</span></p>
+      <p>Total purchases: <span id="totalPurchases">0</span></p>
+      <p>Most used store: <span id="topStore">None</span></p>
+      <p>Biggest purchase: <span id="biggestPurchase">None</span></p>
+      <p>Items returned: <span id="returnedCount">0</span></p>
     </section>
-        <h2>My receipts</h2>
+    <h2>My receipts</h2>
 
-        <input id="search" placeholder="Search receipts..." oninput="searchReceipts()">
-        
-        <div id="receipts"></div>
-    </body>
+    <input
+      id="search"
+      placeholder="Search receipts..."
+      oninput="searchReceipts()"
+    />
+
+    <div id="receipts"></div>
+  </body>
 </html>
-

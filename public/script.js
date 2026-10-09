@@ -115,6 +115,7 @@ async function addPurchase() {
   let product = document.getElementById("product").value;
   let store = document.getElementById("store").value;
   let price = document.getElementById("price").value;
+  let currency = document.getElementById("currency").value;
   let purchaseDate = document.getElementById("purchaseDate").value;
   let returnDate = document.getElementById("returnDate").value;
   let warrantyDate = document.getElementById("warrantyDate").value;
@@ -123,10 +124,12 @@ async function addPurchase() {
   for (let row of itemRows) {
     let name = row.querySelector(".detected-item-name").value.trim();
     let priceText = row.querySelector(".detected-item-price").value.trim();
+    let quantity = Number(row.querySelector(".detected-item-quantity").value);
 
     if (name !== "") {
       purchasedItems.push({
         name: name,
+        quantity: Number.isInteger(quantity) && quantity > 0 ? quantity : 1,
         price: priceText === "" ? null : Number(priceText),
       });
     }
@@ -141,6 +144,7 @@ async function addPurchase() {
     warrantyDate: warrantyDate,
     returned: false,
     items: purchasedItems,
+    currency: currency,
   };
 
   let imageFile = document.getElementById("receiptImage").files[0];
@@ -150,10 +154,28 @@ async function addPurchase() {
     } catch (error) {
       console.error("Failed to save receipt image:", error);
       alert("Could not save the receipt image. Purchase was not saved.");
+      return;
     }
   }
   receiptsData.push(reciptData);
   localStorage.setItem("receiptsData", JSON.stringify(receiptsData));
+  document.getElementById("detectedItems").innerHTML = "";
+  document.getElementById("detectedItemsSection").hidden = true;
+  document.getElementById("receiptImage").value = "";
+
+  const fieldsToClear = [
+    "product",
+    "store",
+    "price",
+    "purchaseDate",
+    "returnDate",
+    "warrantyDate",
+  ];
+  for (let field of fieldsToClear) {
+    document.getElementById(field).value = "";
+  }
+  document.getElementById("ocrStatus").textContent = "";
+  document.getElementById("ocrText").textContent = "";
   showReceipts();
   updateDashboard();
   updateInsights();
@@ -229,6 +251,13 @@ function showReceipts() {
       returnStat = "returned";
     }
 
+    let displayPrice = receiptData.currency
+      ? new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: receiptData.currency,
+        }).format(Number(receiptData.price))
+      : receiptData.price + " (Currency not set)";
+
     let receipt = document.createElement("div");
     receipt.className = "receipt-card";
     receipt.innerHTML =
@@ -239,7 +268,7 @@ function showReceipts() {
       receiptData.store +
       "<br>" +
       "Price: $" +
-      receiptData.price +
+      displayPrice +
       "<br>" +
       "Bought: " +
       receiptData.purchaseDate +
@@ -250,6 +279,38 @@ function showReceipts() {
       warrantyStat +
       "<br>" +
       returnStat;
+    if (Array.isArray(receiptData.items) && receiptData.items.length > 0) {
+      let details = document.createElement("details");
+      let summary = document.createElement("summary");
+      summary.textContent =
+        "Purchased Items (" + receiptData.items.length + ")";
+      details.appendChild(summary);
+
+      let itemList = document.createElement("ul");
+      for (let item of receiptData.items) {
+        let listItem = document.createElement("li");
+        let priceText = "Price unknown";
+        if (item.price != null) {
+          if (receiptData.currency) {
+            priceText = new Intl.NumberFormat("en-Us", {
+              style: "currency",
+              currency: receiptData.currency,
+            }).format(Number(item.price));
+          } else {
+            priceText = Number(item.price).toFixed(2) + " (Currency not set)";
+          }
+        }
+        let quantity =
+          Number.isInteger(item.quantity) && item.quantity > 0
+            ? item.quantity
+            : 1;
+
+        listItem.textContent = quantity + " x " + item.name + " - " + priceText;
+        itemList.appendChild(listItem);
+      }
+      details.appendChild(itemList);
+      receipt.appendChild(details);
+    }
     let deleteButton = document.createElement("button");
     deleteButton.textContent = "Delete";
     deleteButton.onclick = function () {
@@ -396,10 +457,50 @@ function updateInsights() {
       topStore = store;
     }
   }
-  document.getElementById("totalSpent").textContent = totalSpent;
+  let spentByCurrency = {};
+  for (let receipt of receiptsData) {
+    let currency = receipt.currency || "Unknown";
+    let amount = Number(receipt.price);
+    if (!Number.isFinite(amount)) continue;
+
+    spentByCurrency[currency] = (spentByCurrency[currency] || 0) + amount;
+  }
+  let formattedTotals = Object.entries(spentByCurrency).map(
+    ([currency, amount]) => {
+      if (currency === "Unknown") {
+        return amount.toFixed(2) + " (Currency not set)";
+      }
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: currency,
+      }).format(amount);
+    },
+  );
+  document.getElementById("totalSpent").textContent =
+    formattedTotals.join(" + ") || "0";
   document.getElementById("totalPurchases").textContent = totalPurchases;
+  let countByCurrency = {};
+  for (let receipt of receiptsData) {
+    let currency = receipt.currency || "Unknown";
+    let amount = Number(receipt.price);
+
+    if (!Number.isFinite(amount)) continue;
+    countByCurrency[currency] = (countByCurrency[currency] || 0) + 1;
+  }
+  let formattedAverages = Object.entries(spentByCurrency).map(
+    ([currency, total]) => {
+      let average = total / countByCurrency[currency];
+      if (currency === "Unknown") {
+        return average.toFixed(2) + " (Currency not set)";
+      }
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: currency,
+      }).format(average);
+    },
+  );
   document.getElementById("averagePurchase").textContent =
-    averagePurchase.toFixed(2);
+    formattedAverages.join(" | ") || "0";
   document.getElementById("biggestPurchase").textContent = biggestPurchase;
   document.getElementById("topStore").textContent = topStore;
   document.getElementById("returnedCount").textContent = returnedCount;

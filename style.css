@@ -1,104 +1,128 @@
 * {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 body {
-    background-color: #111827;
-    color: white;
-    font-family: Arial, Helvetica, sans-serif;
-    padding: 30px;
-    max-width: 800px;
-    margin: auto;
+  background-color: #111827;
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+  padding: 30px;
+  max-width: 800px;
+  margin: auto;
 }
 h1 {
-    color: #60a5fa;
+  color: #60a5fa;
 }
 input {
-    display: block;
-    margin-bottom: 12px;
-    padding: 12px;
-    width: 100%;
-    background-color: #1e293b;
-    color: whitesmoke;
-    border: 1px solid #334155;
-    border-radius: 20px;
+  display: block;
+  margin-bottom: 12px;
+  padding: 12px;
+  width: 100%;
+  background-color: #1e293b;
+  color: whitesmoke;
+  border: 1px solid #334155;
+  border-radius: 20px;
 }
 input::placeholder {
-    color: #94a3b8;
+  color: #94a3b8;
 }
 button {
-    padding: 12px;
-    background-color: #2563eb;
-    color: white;
-    border: none;
-    width: 100%;
-    border-radius: 20px;
-    cursor: pointer;
+  padding: 12px;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  width: 100%;
+  border-radius: 20px;
+  cursor: pointer;
 }
 button:hover {
-    background-color: #1d4ed8;
+  background-color: #1d4ed8;
 }
 #receipts {
-    margin-top: 25px;
+  margin-top: 25px;
 }
 .receipt-card {
-    background-color: #1f2937;
-    padding: 15px;
-    margin-bottom: 12px;
-    border-radius: 20px;
+  background-color: #1f2937;
+  padding: 15px;
+  margin-bottom: 12px;
+  border-radius: 20px;
 }
 .receipt-image {
-    display: block;
-    width: 200px;
-    margin-top: 15px;
-    border-radius: 20px;
+  display: block;
+  width: 200px;
+  margin-top: 15px;
+  border-radius: 20px;
 }
 .add-box {
-    background-color: #1e293b;
-    padding: 20px;
-    border-radius: 20px;
-    margin-top: 30px;
-    margin-bottom: 35px;
+  background-color: #1e293b;
+  padding: 20px;
+  border-radius: 20px;
+  margin-top: 30px;
+  margin-bottom: 35px;
 }
 #receiptImage {
-    background-color: #0f172a;
-    border: 2px dashed #475569;
-    padding: 12px;
+  background-color: #0f172a;
+  border: 2px dashed #475569;
+  padding: 12px;
 }
 #receiptImage:hover {
-    border-color: #60a5fa;
+  border-color: #60a5fa;
 }
 #search {
-    margin-bottom: 25px;
+  margin-bottom: 25px;
 }
 .receipt-card h3 {
-    margin-top: 0;
-    margin-bottom: 12px;
-    color: #5fa4f8;
+  margin-top: 0;
+  margin-bottom: 12px;
+  color: #5fa4f8;
 }
 .dashboard {
-    background-color: #1e293b;
-    padding: 25px;
-    border-radius: 20px;
-    margin-bottom: 30px;
+  background-color: #1e293b;
+  padding: 25px;
+  border-radius: 20px;
+  margin-bottom: 30px;
 }
 .dashboard p {
-    background-color: #0f172a;
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 10px;
-    border: 2px dashed #475569;
+  background-color: #0f172a;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  border: 2px dashed #475569;
 }
 .dashboard p:hover {
-    border-color: #60a5fa;
+  border-color: #60a5fa;
 }
 .insights p {
-    background-color: #0f172a;
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 10px;
-    border: 2px dashed #475569;
+  background-color: #0f172a;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  border: 2px dashed #475569;
 }
 
 .insights p:hover {
-    border-color: #60a5fa;
+  border-color: #60a5fa;
+}
+.receipt-card details {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 12px;
+}
+.receipt-card summary {
+  cursor: pointer;
+  color: #60a5fa;
+  font-weight: bold;
+}
+.receipt-card ul {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 0;
+}
+.receipt-card li {
+  padding: 10px 0;
+  border-bottom: 1px solid #334155;
+}
+.receipt-card li:last-child {
+  border-bottom: none;
 }

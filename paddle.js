@@ -74,6 +74,30 @@ async function scanReceiptPaddle() {
     }
   }
 
+  if (detectedItems.length === 0) {
+    for (let i = 0; i < cleanLines.length; i++) {
+      let match = cleanLines[i].match(/^(\d+)\s*[x×]\s*(.+)$/i);
+      if (!match) continue;
+      let quantity = Number(match[1]);
+      let lineTotal = null;
+      for (let j = i + 1; j < cleanLines.length; j++) {
+        let line = cleanLines[j];
+        if (/^\d+\s*[x×]\s*/i.test(line) || /^total\b/i.test(line)) {
+          break;
+        }
+        let priceMatch = line.match(/^(?:CHF\s*)?(\d+[.,]\d{2})(?:\s*CHF)?$/i);
+        if (priceMatch) {
+          lineTotal = Number(priceMatch[1].replace(",", "."));
+        }
+      }
+      detectedItems.push({
+        name: match[2].trim(),
+        quantity: quantity,
+        price: lineTotal,
+      });
+    }
+  }
+
   let itemsSection = document.getElementById("detectedItemsSection");
   let itemsBox = document.getElementById("detectedItems");
   itemsBox.innerHTML = "";
@@ -84,6 +108,13 @@ async function scanReceiptPaddle() {
     nameInput.className = "detected-item-name";
     nameInput.value = item.name;
     nameInput.placeholder = "Product name";
+    let quantityInput = document.createElement("input");
+    quantityInput.className = "detected-item-quantity";
+    quantityInput.type = "number";
+    quantityInput.min = "1";
+    quantityInput.step = "1";
+    quantityInput.placeholder = "Quantity";
+    quantityInput.value = item.quantity ?? 1;
     let priceInput = document.createElement("input");
     priceInput.className = "detected-item-price";
     priceInput.type = "number";
@@ -95,6 +126,7 @@ async function scanReceiptPaddle() {
       priceInput.value = item.price;
     }
     row.appendChild(nameInput);
+    row.appendChild(quantityInput);
     row.appendChild(priceInput);
     itemsBox.appendChild(row);
   }
@@ -169,6 +201,32 @@ async function scanReceiptPaddle() {
   }
 
   ocrText.textContent = text;
+  let detectedCurrency = null;
+
+  let totalCurrency = text.match(/^total\s*:?\s*(CHF|USD|EGP|EUR|GBP)\b/im);
+  if (totalCurrency) {
+    detectedCurrency = totalCurrency[1].toUpperCase();
+  }
+  if (!detectedCurrency) {
+    let currencyMatch = text.match(/\b(CHF|USD|EGP|EUR|GBP)\b/i);
+    if (currencyMatch) {
+      detectedCurrency = currencyMatch[1].toUpperCase();
+    }
+  }
+  if (!detectedCurrency) {
+    if (text.includes("€")) {
+      detectedCurrency = "EUR";
+    } else if (text.includes("£")) {
+      detectedCurrency = "GBP";
+    } else if (/ج\s*\.?\s*م\.?|جنيه(?:ات)?/i.test(text)) {
+      detectedCurrency = "EGP";
+    } else if (text.includes("$")) {
+      detectedCurrency = "USD";
+    }
+  }
+  if (detectedCurrency) {
+    document.getElementById("currency").value = detectedCurrency;
+  }
   let missingFields = [];
   if (document.getElementById("store").value == "") {
     missingFields.push("store");
