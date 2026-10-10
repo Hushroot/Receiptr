@@ -267,7 +267,7 @@ function showReceipts() {
       "Store: " +
       receiptData.store +
       "<br>" +
-      "Price: $" +
+      "Price: " +
       displayPrice +
       "<br>" +
       "Bought: " +
@@ -369,7 +369,7 @@ function markAsReturned(index) {
 }
 function updateDashboard() {
   let returnsSoon = 0;
-  let returnableMoney = 0;
+  let returnableByCurrency = {};
   let urgentItem = "None";
   let smalledtDays = Infinity;
   let warrantiesSoon = 0;
@@ -383,8 +383,13 @@ function updateDashboard() {
     if (receiptData.returned != true && daysLeft >= 0 && daysLeft <= 7) {
       returnsSoon++;
     }
-    if (receiptData.returned != true && daysLeft >= 0) {
-      returnableMoney = returnableMoney + Number(receiptData.price);
+    if (receiptData.returned !== true && daysLeft >= 0) {
+      let amount = Number(receiptData.price);
+      if (receiptData.price !== "" && Number.isFinite(amount)) {
+        let currency = receiptData.currency || "Unknown";
+        returnableByCurrency[currency] =
+          (returnableByCurrency[currency] || 0) + amount;
+      }
     }
     if (
       receiptData.returned != true &&
@@ -408,7 +413,19 @@ function updateDashboard() {
     }
   }
   document.getElementById("returnsSoon").textContent = returnsSoon;
-  document.getElementById("returnableMoney").textContent = returnableMoney;
+  let formattedReturnable = Object.entries(returnableByCurrency).map(
+    ([currency, amount]) => {
+      if (currency === "Unknown") {
+        return amount.toFixed(2) + " (Currency not set)";
+      }
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: currency,
+      }).format(amount);
+    },
+  );
+  document.getElementById("returnableMoney").textContent =
+    formattedReturnable.join(" | ") || "0";
   document.getElementById("urgentItem").textContent = urgentItem;
   document.getElementById("warrantiesSoon").textContent = warrantiesSoon;
 
@@ -501,9 +518,169 @@ function updateInsights() {
   );
   document.getElementById("averagePurchase").textContent =
     formattedAverages.join(" | ") || "0";
-  document.getElementById("biggestPurchase").textContent = biggestPurchase;
+  let biggestByCurrency = {};
+  for (let receipt of receiptsData) {
+    let currency = receipt.currency || "Unkown";
+    let amount = Number(receipt.price);
+    if (receipt.price === "" || !Number.isFinite(amount)) {
+      continue;
+    }
+    if (
+      !(currency in biggestByCurrency) ||
+      amount > biggestByCurrency[currency].amount
+    ) {
+      biggestByCurrency[currency] = {
+        name: receipt.product || "Unnamed purchase",
+        amount: amount,
+      };
+    }
+  }
+  let formattedBiggest = Object.entries(biggestByCurrency).map(
+    ([currency, purchase]) => {
+      let priceText;
+      if (currency === "Unkown") {
+        priceText = purchase.amount.toFixed(2) + " (currency not set)";
+      } else {
+        priceText = new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: currency,
+        }).format(purchase.amount);
+      }
+      return purchase.name + " - " + priceText;
+    },
+  );
+  document.getElementById("biggestPurchase").textContent =
+    formattedBiggest.join(" | ") || "None";
   document.getElementById("topStore").textContent = topStore;
   document.getElementById("returnedCount").textContent = returnedCount;
+
+  updateSpendingChart();
+}
+let spendingChartInstance = null;
+function updateSpendingChart() {
+  const canvas = document.getElementById("spendingChart");
+  const currencySelect = document.getElementById("chartCurrency");
+  const summary = document.getElementById("chartSummary");
+
+  if (!canvas || !currencySelect || !summary) return;
+  const validReceipts = receiptsData.filter((receipt) => {
+    return (
+      receipt.currency &&
+      /^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(receipt.purchaseDate || "") &&
+      receipt.price !== "" &&
+      receipt.price != null &&
+      Number.isFinite(Number(receipt.price))
+    );
+  });
+  const currencies = [
+    ...new Set(validReceipts.map((receipt) => receipt.currency))
+  ].sort();
+  let selectedCurrency = currencySelect.value;
+  currencySelect.innerHTML = "";
+
+  for (const currency of currencies) {
+    const option = document.createElement("option");
+    option.value = currency;
+    option.textContent = currency;
+    currencySelect.appendChild(option);
+  }
+
+  if (currencies.length === 0) {
+    summary.textContent =
+    "No purchases with valid dates, prices, and currencies yet.";
+
+    if (spendingChartInstance) {
+      spendingChartInstance.destroy();
+      spendingChartInstance = null;
+    }
+    return;
+  }
+  if (!currencies.includes(selectedCurrency)) {
+    selectedCurrency = currencies[0];
+  }
+  currencySelect.value = selectedCurrency;
+  currencySelect.onchange = updateSpendingChart;
+  const monthlyTotals = {};
+  const selectedReceipts = validReceipts.filter(
+    (receipt) => receipt.currency === selectedCurrency
+  );
+  for (const receipt of selectedReceipts) {
+    const month = receipt.purchaseDate.slice(0, 7);
+
+    monthlyTotals[month] = (monthlyTotals[month] || 0) + Number(receipt.price);
+  }
+  const months = Object.keys(monthlyTotals).sort();
+  const labels = months.map((month) => {
+    const [year, monthNumber] = month.split("-").map(Number);
+
+    return new Date(year, monthNumber - 1, 1)
+      .toLocaleDateString("en-US", {
+        month: "short",
+        year: "numeric"
+      });
+  });
+  const amounts = months.map((month) => monthlyTotals[month]);
+  const formatter = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: selectedCurrency
+  });
+  const total = amounts.reduce((sum, amount) => sum + amount, 0);
+
+  summary.textContent =
+    selectedReceipts.length +
+    " purchases | Total: " +
+    formatter.format(total);
+
+  if (spendingChartInstance) {
+    spendingChartInstance.destroy();
+  }
+  spendingChartInstance = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Monthly Spending",
+        data: amounts,
+        backgroundColor: "#818cf8",
+        hoverBackgroundColor: "#a5b4fc",
+        borderRadius: 8,
+        maxBarThickness: 65
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          label: (context) =>
+            formatter.format(context.parsed.y)
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: "#94a3b8"
+        },
+        grid: {
+          display: false
+        }
+      },
+      y: {
+        beginAtZero: true,
+        ticks: {
+          color: "#94a3b8",
+          callback: (value) => formatter.format(value)
+        },
+        grid: {
+          color: "#293347"
+        }
+      }
+    }
+  });
 }
 function showUrgentReturns() {
   let receipts = document.getElementsByClassName("receipt-card");

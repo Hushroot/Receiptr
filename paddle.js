@@ -138,17 +138,35 @@ async function scanReceiptPaddle() {
   let dateMatch = text.match(/(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/);
 
   if (dateMatch) {
-    let month = Number(dateMatch[1]);
-    let day = Number(dateMatch[2]);
+    let first = Number(dateMatch[1]);
+    let second = Number(dateMatch[2]);
     let year = dateMatch[3];
-    if (year.length == 2) {
+
+    if (year.length === 2) {
       year = "20" + year;
     }
-    month = String(month).padStart(2, "0");
-    day = String(day).padStart(2, "0");
+    let month;
+    let day;
 
-    document.getElementById("purchaseDate").value =
-      year + "-" + month + "-" + day;
+    if (dateMatch[0].includes(".") || first > 12) {
+      day = first;
+      month = second;
+    } else {
+      month = first;
+      day = second;
+    }
+    const parsedDate = new Date(Number(year), month - 1, day);
+
+    if (
+      parsedDate.getFullYear() === Number(year) &&
+      parsedDate.getMonth() === month - 1 &&
+      parsedDate.getDate() === day
+    ) {
+      document.getElementById("purchaseDate").value =
+          year + "-" +
+          String(month).padStart(2, "0") + "-" +
+          String(day).padStart(2, "0");
+    }
   }
   if (!dateMatch) {
     let textDateMatch = text.match(

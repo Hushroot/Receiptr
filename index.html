@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script type="module" src="/paddle.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js" defer></script>
     <script src="/script.js" defer></script>
   </head>
   <body>
@@ -40,7 +41,7 @@
     <section class="dashboard">
       <h2>Return Dashboard</h2>
       <p>Returns expiring soon: <span id="returnsSoon">0</span></p>
-      <p>Money still returnable: $<span id="returnableMoney">0</span></p>
+      <p>Money still returnable: <span id="returnableMoney">0</span></p>
       <p>Warranties expiring soon: <span id="warrantiesSoon">0</span></p>
       <p id="urgentBox">Most urgent item: <span id="urgentItem">None</span></p>
       <button onclick="showUrgentReturns()">Show urgent returns</button>
@@ -55,7 +56,52 @@
       <p>Biggest purchase: <span id="biggestPurchase">None</span></p>
       <p>Items returned: <span id="returnedCount">0</span></p>
     </section>
+    <section class="spending-chart">
+      <div class="chart-header">
+        <div>
+          <h2>Spending Analytics</h2>
+          <p>Explore your monthly spending patterns.</p>
+        </div>
+        <div class="chart-filter">
+          <label for="chartCurrency">Currency</label>
+          <select id="chartCurrency">
+            <option value="">Select currency</option>
+          </select>
+        </div>
+      </div>
+      <p id="chartSummary">Preparing your spending data...</p>
+      <div class="chart-container">
+        <canvas id="spendingChart"></canvas>
+      </div>
+    </section>
     <h2>My receipts</h2>
+
+    <div class="receipt-filters">
+      <div class="filter-group">
+        <label for="receiptStatus">Status</label>
+        <select id="receiptStatus">
+          <option value="all">All receipts</option>
+          <option value="returnable">Returnable</option>
+          <option value="expired">Return expired</option>
+          <option value="returned">Already returned</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="receiptCurrency">Currency</label>
+        <select id="receiptCurrency">
+          <option value="all">All currencies</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="receiptSort">Sort by</label>
+        <select id="receiptSort">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="highest">Highest price first</option>
+          <option value="lowest">Lowest price first</option>
+        </select>
+      </div>
+    </div>
 
     <input
       id="search"
